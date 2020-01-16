@@ -6,15 +6,15 @@
 # export LOG_ERROR_FILE_PATH="/tmp/my-service.error.log"
 
 @e() {
-  echo "# $*"
+  echo -e "$*"
 }
 
 @warn() {
-  @e "Warning: $*" >&2
+  @e "[  $(tput setaf 3)WARNING$(tput sgr 0)  ] $*" >&2
 }
 
 @err() {
-  @e "Error! $*" >&2
+  @e "[  $(tput setaf 1)FAIL$(tput sgr 0)  ] $*" >&2
   exit 1
 }
 
@@ -60,14 +60,14 @@
 
     if kill -0 $p >/dev/null 2>&1
       then
-        @e "Serive $serviceName is runnig with PID $p"
+        @e "Service $serviceName is runnig with PID $p"
         return 0
       else
-        @e "Service $serviceName is not running (process PID $p not exists)"
+        @warn "Service $serviceName is not running (process PID $p not exists)"
         return 1
       fi
   else
-    @e "Service $serviceName is not running"
+    @warn "Service $serviceName is not running"
     return 2
   fi
 }
@@ -86,7 +86,7 @@
       return 0
     fi
 
-  @e "Starting ${serviceName} service..."
+  @e "[  $(tput setaf 2)OK$(tput sgr 0)  ]  Starting ${serviceName} service..."
   touch "$LOG_FILE_PATH" >/dev/null 2>&1 || @err "Can not create $LOG_FILE_PATH file"
   touch "$LOG_ERROR_FILE_PATH" >/dev/null 2>&1 || @err "Can not create $LOG_ERROR_FILE_PATH file"
   touch "$PID_FILE_PATH" >/dev/null 2>&1 || @err "Can not create $PID_FILE_PATH file"
@@ -108,7 +108,7 @@
   if [ -f "$PID_FILE_PATH" ] && [ ! -z "$(cat "$PID_FILE_PATH")" ]; then
     touch "$PID_FILE_PATH" >/dev/null 2>&1 || @err "Can not touch $PID_FILE_PATH file"
 
-    @e "Stopping ${serviceName}..."
+    @e "[  $(tput setaf 2)OK$(tput sgr 0)  ]  Stopping ${serviceName}..."
     for p in $(cat "$PID_FILE_PATH"); do
       if kill -0 $p >/dev/null 2>&1
         then
@@ -149,6 +149,7 @@
   local onFinish="$6" # On finish
 
   @serviceStop "$serviceName"
+  sleep 2
   @serviceStart "$serviceName" "$c" "$w" "$action" "$onStart" "$onFinish"
 }
 
@@ -170,7 +171,7 @@
       exit 0
       ;;
     *)
-      @e "Actions: [log|error]"
+      @e "Usage: {log|error}"
       exit 1
       ;;
   esac
@@ -233,7 +234,7 @@ serviceMenu() {
       @serviceTail "$serviceName" "error"
       ;;
     *)
-      @e "Actions: [start|stop|restart|status|run|debug|tail(-[log|error])]"
+      @e "Usage:\t{start|stop|restart|status|run|debug|tail(-{log|error})}"
       exit 1
       ;;
   esac

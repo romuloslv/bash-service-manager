@@ -4,7 +4,7 @@ export PID_FILE_PATH="/tmp/my-service.pid"
 export LOG_FILE_PATH="/tmp/my-service.log"
 export LOG_ERROR_FILE_PATH="/tmp/my-service.error.log"
 
-. ./services.sh
+source ./services.sh
 
 run-script() {
   local action="$1" # Action
@@ -15,7 +15,6 @@ run-script() {
     echo bar >&2
 
     [ "$action" = "run" ] && return 0
-    sleep 5
     [ "$action" = "debug" ] && exit 25
   done
 }
@@ -34,6 +33,7 @@ after-finish() {
 }
 
 action="$1"
-serviceName="Example Service"
+serviceName="Example"
+#workDir="/opt/my-service"
 
 serviceMenu "$action" "$serviceName" run-script "$workDir" before-start after-finish
